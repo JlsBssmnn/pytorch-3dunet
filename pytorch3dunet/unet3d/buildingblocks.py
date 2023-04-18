@@ -303,7 +303,7 @@ class Decoder(nn.Module):
     """
 
     def __init__(self, in_channels, out_channels, conv_kernel_size=3, scale_factor=(2, 2, 2), basic_module=DoubleConv,
-                 conv_layer_order='gcr', num_groups=8, mode='nearest', padding=1, upsample=True, is3d=True):
+                 conv_layer_order='gcr', num_groups=8, mode='nearest', padding=1, upsample=True, is3d=True, use_dropout=False):
         super(Decoder, self).__init__()
 
         if upsample:
@@ -334,10 +334,18 @@ class Decoder(nn.Module):
                                          padding=padding,
                                          is3d=is3d)
 
+        if use_dropout:
+            self.dropout = nn.Dropout(0.5)
+        else:
+            self.dropout = None
+
     def forward(self, encoder_features, x):
         x = self.upsampling(encoder_features=encoder_features, x=x)
         x = self.joining(encoder_features, x)
         x = self.basic_module(x)
+
+        if self.dropout is not None:
+            x = self.dropout(x)
         return x
 
     @staticmethod
@@ -349,7 +357,7 @@ class Decoder(nn.Module):
 
 
 def create_encoders(in_channels, f_maps, basic_module, conv_kernel_size, conv_padding, layer_order, num_groups,
-                    pool_kernel_size, is3d):
+                    pool_kernel_size, is3d, use_dropout):
     # create encoder path consisting of Encoder modules. Depth of the encoder is equal to `len(f_maps)`
     encoders = []
     for i, out_feature_num in enumerate(f_maps):
@@ -378,7 +386,7 @@ def create_encoders(in_channels, f_maps, basic_module, conv_kernel_size, conv_pa
     return nn.ModuleList(encoders)
 
 
-def create_decoders(f_maps, basic_module, conv_kernel_size, conv_padding, layer_order, num_groups, is3d):
+def create_decoders(f_maps, basic_module, conv_kernel_size, conv_padding, layer_order, num_groups, is3d, use_dropout):
     # create decoder path consisting of the Decoder modules. The length of the decoder list is equal to `len(f_maps) - 1`
     decoders = []
     reversed_f_maps = list(reversed(f_maps))
@@ -396,7 +404,8 @@ def create_decoders(f_maps, basic_module, conv_kernel_size, conv_padding, layer_
                           conv_kernel_size=conv_kernel_size,
                           num_groups=num_groups,
                           padding=conv_padding,
-                          is3d=is3d)
+                          is3d=is3d,
+                          use_dropout=use_dropout)
         decoders.append(decoder)
     return nn.ModuleList(decoders)
 
