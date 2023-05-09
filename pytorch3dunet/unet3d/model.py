@@ -47,6 +47,11 @@ class AbstractUNet(nn.Module):
         assert len(f_maps) > 1, "Required at least 2 levels in the U-Net"
         if 'g' in layer_order:
             assert num_groups is not None, "num_groups must be specified if GroupNorm is used"
+        if type(pool_kernel_size) == list and len(pool_kernel_size) < num_levels - 1:
+            pool_kernel_size += [2]*(num_levels - len(pool_kernel_size) - 1) # if not all levels are specified fill up with
+                                                                             # the default value of 2
+        if type(pool_kernel_size) == list:
+            assert len(pool_kernel_size) == num_levels - 1
 
         # create encoder path
         self.encoders = create_encoders(in_channels, f_maps, basic_module, conv_kernel_size, conv_padding, layer_order,
@@ -110,7 +115,8 @@ class UNet3D(AbstractUNet):
     """
 
     def __init__(self, in_channels, out_channels, final_sigmoid=True, f_maps=64, layer_order='gcr',
-                 num_groups=8, num_levels=4, is_segmentation=True, conv_padding=1, use_dropout=False, **kwargs):
+                 num_groups=8, num_levels=4, is_segmentation=True, conv_padding=1, use_dropout=False,
+                 pool_kernel_size=2, **kwargs):
         super(UNet3D, self).__init__(in_channels=in_channels,
                                      out_channels=out_channels,
                                      final_sigmoid=final_sigmoid,
@@ -122,7 +128,8 @@ class UNet3D(AbstractUNet):
                                      is_segmentation=is_segmentation,
                                      conv_padding=conv_padding,
                                      is3d=True,
-                                     use_dropout=use_dropout)
+                                     use_dropout=use_dropout,
+                                     pool_kernel_size=pool_kernel_size)
 
 
 class ResidualUNet3D(AbstractUNet):
@@ -134,7 +141,8 @@ class ResidualUNet3D(AbstractUNet):
     """
 
     def __init__(self, in_channels, out_channels, final_sigmoid=True, f_maps=64, layer_order='gcr',
-                 num_groups=8, num_levels=5, is_segmentation=True, conv_padding=1, use_dropout=False, **kwargs):
+                 num_groups=8, num_levels=5, is_segmentation=True, conv_padding=1, use_dropout=False,
+                 pool_kernel_size=2, **kwargs):
         super(ResidualUNet3D, self).__init__(in_channels=in_channels,
                                              out_channels=out_channels,
                                              final_sigmoid=final_sigmoid,
@@ -146,7 +154,8 @@ class ResidualUNet3D(AbstractUNet):
                                              is_segmentation=is_segmentation,
                                              conv_padding=conv_padding,
                                              is3d=True,
-                                             use_dropout=use_dropout)
+                                             use_dropout=use_dropout,
+                                             pool_kernel_size=pool_kernel_size)
 
 
 class ResidualUNetSE3D(AbstractUNet):
@@ -160,7 +169,8 @@ class ResidualUNetSE3D(AbstractUNet):
     """
 
     def __init__(self, in_channels, out_channels, final_sigmoid=True, f_maps=64, layer_order='gcr',
-                 num_groups=8, num_levels=5, is_segmentation=True, conv_padding=1, use_dropout=False, **kwargs):
+                 num_groups=8, num_levels=5, is_segmentation=True, conv_padding=1, use_dropout=False,
+                 pool_kernel_size=2, **kwargs):
         super(ResidualUNetSE3D, self).__init__(in_channels=in_channels,
                                                out_channels=out_channels,
                                                final_sigmoid=final_sigmoid,
@@ -172,7 +182,8 @@ class ResidualUNetSE3D(AbstractUNet):
                                                is_segmentation=is_segmentation,
                                                conv_padding=conv_padding,
                                                is3d=True,
-                                               use_dropout=use_dropout)
+                                               use_dropout=use_dropout,
+                                               pool_kernel_size=pool_kernel_size)
 
 
 class UNet2D(AbstractUNet):
@@ -182,7 +193,8 @@ class UNet2D(AbstractUNet):
     """
 
     def __init__(self, in_channels, out_channels, final_sigmoid=True, f_maps=64, layer_order='gcr',
-                 num_groups=8, num_levels=4, is_segmentation=True, conv_padding=1, use_dropout=False, **kwargs):
+                 num_groups=8, num_levels=4, is_segmentation=True, conv_padding=1, use_dropout=False,
+                 pool_kernel_size=2, **kwargs):
         super(UNet2D, self).__init__(in_channels=in_channels,
                                      out_channels=out_channels,
                                      final_sigmoid=final_sigmoid,
@@ -194,7 +206,8 @@ class UNet2D(AbstractUNet):
                                      is_segmentation=is_segmentation,
                                      conv_padding=conv_padding,
                                      is3d=False,
-                                     use_dropout=use_dropout)
+                                     use_dropout=use_dropout,
+                                     pool_kernel_size=pool_kernel_size)
 
 
 def get_model(model_config):

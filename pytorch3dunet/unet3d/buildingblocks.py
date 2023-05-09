@@ -372,12 +372,13 @@ def create_encoders(in_channels, f_maps, basic_module, conv_kernel_size, conv_pa
                               padding=conv_padding,
                               is3d=is3d)
         else:
+            pool = pool_kernel_size[i-1] if type(pool_kernel_size) == list else pool_kernel_size
             encoder = Encoder(f_maps[i - 1], out_feature_num,
                               basic_module=basic_module,
                               conv_layer_order=layer_order,
                               conv_kernel_size=conv_kernel_size,
                               num_groups=num_groups,
-                              pool_kernel_size=pool_kernel_size,
+                              pool_kernel_size=pool,
                               padding=conv_padding,
                               is3d=is3d)
 
